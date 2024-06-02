@@ -57,5 +57,6 @@ final class SmfHookListener extends AbstractListenerAggregate implements Request
 		$target  = $event->getTarget();
 		$action  = $event->getParam('action');
 		$example = $target->doSomething();
+		$action  = $example->get('action', 'some_default');
 	}
 }
