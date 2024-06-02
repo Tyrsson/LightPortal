@@ -11,6 +11,7 @@
     "laminas/laminas-config-aggregator": "^1.15",
     "laminas/laminas-eventmanager": "^3.13",
     "laminas/laminas-filter": "^2.35",
+    "laminas/laminas-http": "^2.19",
     "laminas/laminas-i18n": "^2.26",
     "laminas/laminas-loader": "^2.10",
     "laminas/laminas-servicemanager": "3.22.1"

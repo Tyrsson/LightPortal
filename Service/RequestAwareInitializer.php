@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Bugo\LightPortal\Service;
 
 use Bugo\LightPortal\RequestAwareInterface;
-use Bugo\LightPortal\Utils\Request;
+use Laminas\Http\PhpEnvironment\Request;
 use Laminas\ServiceManager\Initializer\InitializerInterface;
 use Psr\Container\ContainerInterface;
 

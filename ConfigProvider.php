@@ -6,6 +6,7 @@ namespace Bugo\LightPortal;
 
 use Laminas\EventManager\EventManager;
 use Laminas\EventManager\EventManagerInterface;
+use Laminas\Http\PhpEnvironment\Request;
 use Laminas\ServiceManager\Factory\InvokableFactory;
 
 final class ConfigProvider
@@ -22,6 +23,7 @@ final class ConfigProvider
 	{
 		return [
 			'aliases'   => [
+				// expose support for various laminas packages that expect this alias for EventManager
 				'EventManager' => EventManager::class,
 				EventManagerInterface::class => EventManager::class,
 			],
@@ -37,12 +39,13 @@ final class ConfigProvider
 				// Actions\Tag::class            => InvokableFactory::class,
 				EventManager::class           => Service\EventManagerFactory::class,
 				Events\Listeners\SmfHookListener::class => Events\Listeners\SmfHookListenerFactory::class,
-				Integration::class                       => Service\IntegrationFactory::class,
+				Integration::class                      => Service\IntegrationFactory::class,
+				Request::class                          => Service\RequestFactory::class,
 				//Repositories\PluginRepository::class     => InvokableFactory::class,
 				//Utils\Request::class                     => InvokableFactory::class,
 			],
 			'initializers' => [
-				//Service\RequestAwareInitializer::class,
+				Service\RequestAwareInitializer::class,
 			],
 		];
 	}

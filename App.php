@@ -25,13 +25,17 @@ use Laminas\EventManager\EventManagerAwareTrait;
 if (! defined('SMF'))
 	die('We gotta get out of here!');
 
-final class App implements EventManagerAwareInterface
+final class App implements EventManagerAwareInterface, RequestAwareInterface
 {
 	use EventManagerAwareTrait;
+	use RequestAwareTrait;
 
 	public function run()
 	{
-		$integration = Integration::getInstance($this->getEventManager());
+		$integration = Integration::getInstance(
+			$this->getEventManager(),
+			$this->getRequest()
+		);
 		$integration::init();
 	}
 }

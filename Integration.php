@@ -18,6 +18,7 @@ use Bugo\LightPortal\Events\Event as EventType;
 use Bugo\LightPortal\Events\SMFEvent;
 use Laminas\EventManager\Event;
 use Laminas\EventManager\EventManagerInterface;
+use Laminas\Http\PhpEnvironment\Request;
 
 use function add_integration_function;
 
@@ -31,28 +32,29 @@ if (! defined('SMF'))
  */
 final class Integration
 {
-	protected static $instance;
 	protected static $eventManager;
+	protected static $instance;
+	protected static $request;
 
-	public static function getInstance(EventManagerInterface $eventManager): self
-	{
+	public static function getInstance(
+		EventManagerInterface $eventManager,
+		Request $request,
+	): self {
 		static::$eventManager = $eventManager;
 		static::$eventManager->addIdentifiers([static::class]);
-		// if (! isset(static::$eventManager)) {
-		// 	static::$eventManager = $eventManager;
-		// }
+		static::$request = $request;
+
 		if (! isset(static::$instance)) {
 			static::$instance = new self();
 		}
 		return static::$instance;
 	}
-	public function __invoke(): void
-	{}
 
 	public static function init(): void
 	{
 		if ('BACKGROUND' !== SMF) {
-			add_integration_function(SMFEvent::DefaultAction->value, __CLASS__ . '::defaultAction', __FILE__, true);
+			//add_integration_function(SMFEvent::DefaultAction->value, __CLASS__ . '::defaultAction', __FILE__, true);
+			//add_integration_function(SMFEvent::CurrentAction->value, __CLASS__ . '::currentAction', __FILE__, true);
 		}
 
 		//$this->applyHook('init');
