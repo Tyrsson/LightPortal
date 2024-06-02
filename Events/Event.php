@@ -7,6 +7,7 @@ namespace Bugo\LightPortal\Events;
 enum Event: string
 {
 	case DefaultAction = 'defaultAction';
+	case CurrentAction = 'currentAction';
 	case InitAddons    = 'addon.init';
 	case RunAddon      = 'addon.run';
 	case SmfHook       = 'smf.hook';

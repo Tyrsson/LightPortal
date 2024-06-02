@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Bugo\LightPortal\Events\Listeners;
 
+use Bugo\LightPortal\Events\CurrentActionEvent;
 use Bugo\LightPortal\Events\Event;
 use Bugo\LightPortal\Filters\SnakeNameFilter;
 use Bugo\LightPortal\RequestAwareInterface;
@@ -34,6 +35,12 @@ final class SmfHookListener extends AbstractListenerAggregate implements Request
 			[$this, 'onDefaultAction'],
 			$priority
 		);
+
+		$this->listeners[] = $events->attach(
+			Event::CurrentAction->value,
+			[$this, 'onCurrentAction'],
+			$priority
+		);
 	}
 
 	public function onSmfHook(EventInterface $event)
@@ -43,5 +50,12 @@ final class SmfHookListener extends AbstractListenerAggregate implements Request
 	public function onDefaultAction(EventInterface $event)
 	{
 
+	}
+
+	public function onCurrentAction(CurrentActionEvent $event)
+	{
+		$target  = $event->getTarget();
+		$action  = $event->getParam('action');
+		$example = $target->doSomething();
 	}
 }

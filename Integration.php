@@ -14,11 +14,13 @@
 
 namespace Bugo\LightPortal;
 
+use Bugo\LightPortal\Events\CurrentActionEvent;
 use Bugo\LightPortal\Events\Event as EventType;
 use Bugo\LightPortal\Events\SMFEvent;
 use Laminas\EventManager\Event;
 use Laminas\EventManager\EventManagerInterface;
 use Laminas\Http\PhpEnvironment\Request;
+use stdClass;
 
 use function add_integration_function;
 
@@ -53,8 +55,8 @@ final class Integration
 	public static function init(): void
 	{
 		if ('BACKGROUND' !== SMF) {
-			//add_integration_function(SMFEvent::DefaultAction->value, __CLASS__ . '::defaultAction', __FILE__, true);
-			//add_integration_function(SMFEvent::CurrentAction->value, __CLASS__ . '::currentAction', __FILE__, true);
+			add_integration_function(SMFEvent::DefaultAction->value, __CLASS__ . '::defaultAction', __FILE__, true);
+			add_integration_function(SMFEvent::CurrentAction->value, __CLASS__ . '::currentAction', __FILE__, true);
 		}
 
 		//$this->applyHook('init');
@@ -95,6 +97,29 @@ final class Integration
 				'key_one' => 'value_one'
 			],
 		);
+	}
+
+	public static function currentAction(string &$action)
+	{
+		// Custom Event example
+		$currentAction = new CurrentActionEvent(EventType::CurrentAction->value);
+		$targetExample = new class(
+			static::$request
+		) {
+			private $prop = 'someValue';
+			private $request;
+			public function __construct($request)
+			{
+				$this->request = $request;
+			}
+			public function doSomething()
+			{
+				return $this->request->getQuery();
+			}
+		};
+		$currentAction->setTarget($targetExample);
+		$currentAction->setParams(['action' => &$action]);
+		static::$eventManager->triggerEvent($currentAction);
 	}
 
 	public function preCssOutput(): void
@@ -236,33 +261,33 @@ final class Integration
 	 *
 	 * Добавляем выделение для некоторых пунктов меню при переходе в указанные области
 	 */
-	public function currentAction(string &$action): void
-	{
-		if (empty(Config::$modSettings['lp_frontpage_mode']))
-			return;
+	// public function currentAction(string &$action): void
+	// {
+	// 	if (empty(Config::$modSettings['lp_frontpage_mode']))
+	// 		return;
 
-		if ($this->getRequest()->isEmpty('action')) {
-			$action = LP_ACTION;
+	// 	if ($this->getRequest()->isEmpty('action')) {
+	// 		$action = LP_ACTION;
 
-			if ($this->isStandaloneMode() && Config::$modSettings['lp_standalone_url'] !== $this->getRequest()->url()) {
-				$action = 'forum';
-			}
+	// 		if ($this->isStandaloneMode() && Config::$modSettings['lp_standalone_url'] !== $this->getRequest()->url()) {
+	// 			$action = 'forum';
+	// 		}
 
-			if ($this->getRequest()->isNotEmpty(LP_PAGE_PARAM)) {
-				$action = LP_ACTION;
-			}
-		} else {
-			$action = empty(Config::$modSettings['lp_standalone_mode']) && $this->getRequest()->is('forum')
-				? 'home'
-				: Utils::$context['current_action'];
-		}
+	// 		if ($this->getRequest()->isNotEmpty(LP_PAGE_PARAM)) {
+	// 			$action = LP_ACTION;
+	// 		}
+	// 	} else {
+	// 		$action = empty(Config::$modSettings['lp_standalone_mode']) && $this->getRequest()->is('forum')
+	// 			? 'home'
+	// 			: Utils::$context['current_action'];
+	// 	}
 
-		if (isset(Utils::$context['current_board']) || $this->getRequest()->is('keywords')) {
-			$action = empty(Config::$modSettings['lp_standalone_mode'])
-				? 'home'
-				: (in_array('forum', $this->getDisabledActions()) ? LP_ACTION : 'forum');
-		}
-	}
+	// 	if (isset(Utils::$context['current_board']) || $this->getRequest()->is('keywords')) {
+	// 		$action = empty(Config::$modSettings['lp_standalone_mode'])
+	// 			? 'home'
+	// 			: (in_array('forum', $this->getDisabledActions()) ? LP_ACTION : 'forum');
+	// 	}
+	// }
 
 	/**
 	 * @hook integrate_current_action
