@@ -13,6 +13,11 @@ use Laminas\EventManager\EventManagerInterface;
 use Laminas\Http\Header\ContentType;
 use Laminas\Http\PhpEnvironment\Response;
 use Laminas\Http\PhpEnvironment\Request;
+use RuntimeException;
+
+use function ob_end_clean;
+use function ob_start;
+use function obExit;
 
 final class ApiListener extends AbstractListenerAggregate implements RequestAwareInterface
 {
@@ -27,12 +32,18 @@ final class ApiListener extends AbstractListenerAggregate implements RequestAwar
 			[$this, 'onApiAction'],
 			$priority
 		);
+
+		$this->listeners[] = $events->attach(
+			EventType::CurrentAction->value,
+			[$this, 'onApiShutDown'],
+			-10000
+		);
 	}
 
 	public function onApiAction(EventInterface $event)
 	{
 		global $modSettings;
-		\ob_end_clean();
+		ob_end_clean();
 		if (!empty($modSettings['enableCompressedOutput']))
 			@ob_start('ob_gzhandler');
 		else
@@ -43,6 +54,7 @@ final class ApiListener extends AbstractListenerAggregate implements RequestAwar
 		if ($action === self::TARGET_PARAM && $context['template_layers'] !== []) {
 			$context['template_layers'] = [];
 		}
+		/** @var Laminas\Http\PhpEnvironment\Response */
 		$response = new Response();
 		$response->setHeadersSentHandler(function ($response): void {
 			throw new RuntimeException('Cannot send headers, headers already sent');
@@ -50,10 +62,10 @@ final class ApiListener extends AbstractListenerAggregate implements RequestAwar
 		$response->setStatusCode(Response::STATUS_CODE_200);
 		$contentType = new ContentType('application/json');
 		$headers = $response->getHeaders();
-		//$headers->addHeaderLine('content-type: application/json');
+		$headers->addHeader($contentType);
 		$headers->addHeaders([
 			'X-Content-Type-Options' => 'nosniff',
-			'Content-Type' => 'application/json',
+			//'Content-Type' => 'application/json',
 			'HeaderField1' => 'header-field-value1',
 			'HeaderField2' => 'header-field-value2',
 		]);
@@ -63,6 +75,11 @@ final class ApiListener extends AbstractListenerAggregate implements RequestAwar
 		];
 		$response->setContent(\json_encode($data));
 		$response->send();
-		 obExit(false);
+		 //obExit(false);
+	}
+
+	public function onApiShutDown()
+	{
+		obExit(false);
 	}
 }
