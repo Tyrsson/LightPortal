@@ -6,6 +6,7 @@ namespace Bugo\LightPortal\Events\Listeners;
 
 use Bugo\LightPortal\Filters\SnakeNameFilter;
 use Laminas\Filter\FilterPluginManager;
+use Laminas\Http\PhpEnvironment\Request;
 use Psr\Container\ContainerInterface;
 
 final class SmfHookListenerFactory

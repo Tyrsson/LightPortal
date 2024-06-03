@@ -6,6 +6,7 @@ namespace Bugo\LightPortal\Service;
 
 use Bugo\LightPortal\AddonHandler;
 use Bugo\LightPortal\App;
+use Bugo\LightPortal\Events\Listeners\ApiListener;
 use Bugo\LightPortal\Events\Listeners\SmfHookListener;
 use Bugo\LightPortal\Integration;
 use Laminas\EventManager\EventManager;
@@ -21,6 +22,9 @@ final class AppFactory
 		/** @var SmfHookListener */
 		$listener = $container->get(SmfHookListener::class);
 		$listener->attach($eventManager, 10000); // attach listener and insure this listener runs first
+		/** @var ApiListener */
+		$listener = $container->get(ApiListener::class);
+		$listener->attach($eventManager, 9999); // insure this listener runs second
 		$app = new App();
 		$app->setEventManager($eventManager);
 		return $app;

@@ -38,6 +38,7 @@ final class ConfigProvider
 				// Actions\Page::class           => InvokableFactory::class,
 				// Actions\Tag::class            => InvokableFactory::class,
 				EventManager::class           => Service\EventManagerFactory::class,
+				Events\Listeners\ApiListener::class     => InvokableFactory::class,
 				Events\Listeners\SmfHookListener::class => Events\Listeners\SmfHookListenerFactory::class,
 				Integration::class                      => Service\IntegrationFactory::class,
 				Request::class                          => Service\RequestFactory::class,

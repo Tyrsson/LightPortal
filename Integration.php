@@ -55,8 +55,26 @@ final class Integration
 	public static function init(): void
 	{
 		if ('BACKGROUND' !== SMF) {
-			add_integration_function(SMFEvent::DefaultAction->value, __CLASS__ . '::defaultAction', __FILE__, true);
-			add_integration_function(SMFEvent::CurrentAction->value, __CLASS__ . '::currentAction', __FILE__, true);
+			add_integration_function(
+				hook: SMFEvent::DefaultAction->value,
+				function: __CLASS__ . EventType::DefaultAction->value,
+				permanent: false,
+				file: __FILE__,
+				object: true
+			);
+			add_integration_function(
+				hook: SMFEvent::CurrentAction->value,
+				function: __CLASS__ . EventType::CurrentAction->value,
+				permanent: false,
+				file: __FILE__,
+				object: true
+			);
+			add_integration_function(
+				hook: SMFEvent::LoadTheme->value,
+				function: __CLASS__ . EventType::LoadTheme->value,
+				permanent: false,
+				object: true
+			);
 		}
 
 		//$this->applyHook('init');
@@ -78,6 +96,11 @@ final class Integration
 		// $this->applyHook('profile_popup');
 		// $this->applyHook('download_request');
 		// $this->applyHook('whos_online');
+	}
+
+	// non proxied method
+	public static function actions(&$actionArray) {
+		$actionArray['api'] = ['ApiAction.php', 'ApiMain'];
 	}
 
 	public static function defaultAction()
@@ -103,23 +126,19 @@ final class Integration
 	{
 		// Custom Event example
 		$currentAction = new CurrentActionEvent(EventType::CurrentAction->value);
-		$targetExample = new class(
-			static::$request
-		) {
-			private $prop = 'someValue';
-			private $request;
-			public function __construct($request)
-			{
-				$this->request = $request;
-			}
-			public function doSomething()
-			{
-				return $this->request->getQuery();
-			}
-		};
-		$currentAction->setTarget($targetExample);
-		$currentAction->setParams(['action' => &$action]);
+		$currentAction->setParams(['action' => $action]);
 		static::$eventManager->triggerEvent($currentAction);
+	}
+
+	/**
+	 * trigger order 1
+	 * @return void
+	 */
+	public static function loadTheme()
+	{
+		$event = new Event(EventType::LoadTheme->value);
+		$event->setParams(['action', static::$request->getQuery()->get('action', 'unknown_action')]);
+		static::$eventManager->triggerEvent($event);
 	}
 
 	public function preCssOutput(): void
@@ -171,41 +190,41 @@ final class Integration
 	// 	$this->hook('init');
 	// }
 
-	public function loadTheme(): void
-	{
-		if ($this->isPortalCanBeLoaded() === false)
-			return;
+	// public function loadTheme(): void
+	// {
+	// 	if ($this->isPortalCanBeLoaded() === false)
+	// 		return;
 
-		Lang::load('LightPortal/LightPortal');
+	// 	Lang::load('LightPortal/LightPortal');
 
-		$this->defineVars();
+	// 	$this->defineVars();
 
-		$this->loadAssets(new Zero());
+	// 	$this->loadAssets(new Zero());
 
-		// Add some demo plugins for testing
-		Config::updateModSettings(['lp_enabled_plugins' => 'UserInfo,Example']);
+	// 	// Add some demo plugins for testing
+	// 	Config::updateModSettings(['lp_enabled_plugins' => 'UserInfo,Example']);
 
-		// Check init method for all plugins
-		$this->hook('init');
-		// We have to get hello message from UserInfo plugin when it enabled
+	// 	// Check init method for all plugins
+	// 	$this->hook('init');
+	// 	// We have to get hello message from UserInfo plugin when it enabled
 
-		// Check example method with params
-		$params = [];
-		$this->hook('exampleMethod', [&$params]);
-		var_dump($params);
-		// We have to get [1] from Example plugin when it enabled
+	// 	// Check example method with params
+	// 	$params = [];
+	// 	$this->hook('exampleMethod', [&$params]);
+	// 	var_dump($params);
+	// 	// We have to get [1] from Example plugin when it enabled
 
-		// Change enabled plugins
-		Config::updateModSettings(['lp_enabled_plugins' => 'UserInfo']);
+	// 	// Change enabled plugins
+	// 	Config::updateModSettings(['lp_enabled_plugins' => 'UserInfo']);
 
-		$this->hook('init');
-		// We have to get hello message from UserInfo plugin when it enabled
+	// 	$this->hook('init');
+	// 	// We have to get hello message from UserInfo plugin when it enabled
 
-		$params = [];
-		$this->hook('exampleMethod', [&$params]);
-		var_dump($params);
-		// We have to get [] because there is no active plugins with exampleMethod method
-	}
+	// 	$params = [];
+	// 	$this->hook('exampleMethod', [&$params]);
+	// 	var_dump($params);
+	// 	// We have to get [] because there is no active plugins with exampleMethod method
+	// }
 
 	/**
 	 * @hook integrate_redirect
@@ -219,31 +238,31 @@ final class Integration
 			$setLocation = Config::$scripturl . '?action=forum';
 	}
 
-	public function actions(array &$actions): void
-	{
-		if (! empty(Config::$modSettings['lp_frontpage_mode']))
-			$actions[LP_ACTION] = [false, [new FrontPage(), 'show']];
+	// public function actions(array &$actions): void
+	// {
+	// 	if (! empty(Config::$modSettings['lp_frontpage_mode']))
+	// 		$actions[LP_ACTION] = [false, [new FrontPage(), 'show']];
 
-		$actions['forum'] = [false, [new BoardIndex(), 'show']];
+	// 	$actions['forum'] = [false, [new BoardIndex(), 'show']];
 
-		Theme::load();
+	// 	Theme::load();
 
-		if ($this->getRequest()->is(LP_ACTION) && Utils::$context['current_subaction'] === 'categories')
-			$this->cat->show(new Page());
+	// 	if ($this->getRequest()->is(LP_ACTION) && Utils::$context['current_subaction'] === 'categories')
+	// 		$this->cat->show(new Page());
 
-		if ($this->getRequest()->is(LP_ACTION) && Utils::$context['current_subaction'] === 'tags')
-			($this->tag)->show(new Page());
+	// 	if ($this->getRequest()->is(LP_ACTION) && Utils::$context['current_subaction'] === 'tags')
+	// 		($this->tag)->show(new Page());
 
-		if ($this->getRequest()->is(LP_ACTION) && Utils::$context['current_subaction'] === 'promote')
-			$this->promoteTopic();
+	// 	if ($this->getRequest()->is(LP_ACTION) && Utils::$context['current_subaction'] === 'promote')
+	// 		$this->promoteTopic();
 
-		if (empty(Config::$modSettings['lp_standalone_mode']))
-			return;
+	// 	if (empty(Config::$modSettings['lp_standalone_mode']))
+	// 		return;
 
-		$this->unsetDisabledActions($actions);
+	// 	$this->unsetDisabledActions($actions);
 
-		$this->redirectFromDisabledActions();
-	}
+	// 	$this->redirectFromDisabledActions();
+	// }
 
 	// public function defaultAction(): mixed
 	// {

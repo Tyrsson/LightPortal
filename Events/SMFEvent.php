@@ -6,6 +6,8 @@ namespace Bugo\LightPortal\Events;
 
 enum SMFEvent: string
 {
-	case DefaultAction = 'integrate_default_action';
+	case Actions       = 'integrate_actions';
 	case CurrentAction = 'integrate_current_action';
+	case DefaultAction = 'integrate_default_action';
+	case LoadTheme     = 'integrate_load_theme';
 }

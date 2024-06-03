@@ -12,6 +12,7 @@ use Bugo\LightPortal\RequestAwareTrait;
 use Laminas\EventManager\AbstractListenerAggregate;
 use Laminas\EventManager\EventInterface;
 use Laminas\EventManager\EventManagerInterface;
+use Laminas\Http\PhpEnvironment\Request;
 
 final class SmfHookListener extends AbstractListenerAggregate implements RequestAwareInterface
 {
@@ -41,6 +42,12 @@ final class SmfHookListener extends AbstractListenerAggregate implements Request
 			[$this, 'onCurrentAction'],
 			$priority
 		);
+
+		$this->listeners[] = $events->attach(
+			Event::LoadTheme->value,
+			[$this, 'onResetTemplateLayers'],
+			-100
+		);
 	}
 
 	public function onSmfHook(EventInterface $event)
@@ -54,9 +61,21 @@ final class SmfHookListener extends AbstractListenerAggregate implements Request
 
 	public function onCurrentAction(CurrentActionEvent $event)
 	{
+		$filterTest = 'ThisIsAString';
+		$filtered = $this->snakeNameFilter->filter($filterTest);
 		$target  = $event->getTarget();
 		$action  = $event->getParam('action');
-		$example = $target->doSomething();
-		$action  = $example->get('action', 'some_default');
+	}
+
+	public function onLoadTheme(EventInterface $event)
+	{
+	}
+
+	public function onResetTemplateLayers(EventInterface $event)
+	{
+		$action = $event->getParam('action');
+		if ($action === Event::Api->value && ! empty(Utils::$context['template_layers'])) {
+			Utils::$context['template_layers'] = [];
+		}
 	}
 }
